@@ -11,7 +11,6 @@ let movieActors = [];
 
 const generateId = (prefix) => `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-// Datos de ejemplo para empezar
 directors.push({
   id: "dir_mx_001",
   name: "Alfonso Cuarón",
@@ -57,9 +56,7 @@ movieActors.push(
   { movieId: "mx_001", actorId: "act_mx_002", characterName: "Tenoch Iturbide" }
 );
 
-// ==================== ENDPOINTS ====================
 
-// Endpoint de bienvenida
 app.get('/', (req, res) => {
   res.json({ 
     message: 'Bienvenido a CineBase API',
@@ -71,34 +68,34 @@ app.get('/', (req, res) => {
   });
 });
 
-// ==================== GESTIÓN DE PELÍCULAS ====================
 
-// GET /api/movies - Obtener todas las películas con filtros
+
+// GET /api/movies 
 app.get('/api/movies', (req, res) => {
   let result = [...movies];
   
   const { genre, minRating, minYear, maxYear } = req.query;
   
-  // Filtro por género
+  
   if (genre) {
     result = result.filter(movie => 
       movie.genre.some(g => g.toLowerCase().includes(genre.toLowerCase()))
     );
   }
   
-  // Filtro por rating mínimo
+  
   if (minRating) {
     const rating = parseFloat(minRating);
     result = result.filter(movie => movie.rating >= rating);
   }
   
-  // Filtro por año mínimo
+  
   if (minYear) {
     const year = parseInt(minYear);
     result = result.filter(movie => movie.releaseYear >= year);
   }
   
-  // Filtro por año máximo
+  
   if (maxYear) {
     const year = parseInt(maxYear);
     result = result.filter(movie => movie.releaseYear <= year);
@@ -110,7 +107,7 @@ app.get('/api/movies', (req, res) => {
   });
 });
 
-// GET /api/movies/:id - Obtener una película específica
+// GET /api/movies/:id 
 app.get('/api/movies/:id', (req, res) => {
   const movie = movies.find(m => m.id === req.params.id);
   
@@ -121,10 +118,10 @@ app.get('/api/movies/:id', (req, res) => {
     });
   }
   
-  // Obtener información del director
+  
   const director = directors.find(d => d.id === movie.directorId);
   
-  // Obtener actores de la película
+  
   const movieActorsList = movieActors
     .filter(ma => ma.movieId === movie.id)
     .map(ma => {
@@ -142,11 +139,11 @@ app.get('/api/movies/:id', (req, res) => {
   });
 });
 
-// POST /api/movies - Crear una nueva película
+// POST /api/movies
 app.post('/api/movies', (req, res) => {
   const { title, releaseYear, genre, duration, directorId, rating, language, country } = req.body;
   
-  // Validar campos obligatorios
+
   if (!title || !releaseYear || !genre || !duration || !directorId) {
     return res.status(400).json({ 
       error: 'Faltan campos obligatorios',
@@ -154,7 +151,6 @@ app.post('/api/movies', (req, res) => {
     });
   }
   
-  // Verificar que el director existe
   const directorExists = directors.find(d => d.id === directorId);
   if (!directorExists) {
     return res.status(422).json({ 
@@ -163,7 +159,6 @@ app.post('/api/movies', (req, res) => {
     });
   }
   
-  // Verificar si ya existe una película con el mismo título y año
   const movieExists = movies.find(m => 
     m.title.toLowerCase() === title.toLowerCase() && m.releaseYear === releaseYear
   );
@@ -190,7 +185,7 @@ app.post('/api/movies', (req, res) => {
   res.status(201).json(newMovie);
 });
 
-// PUT /api/movies/:id - Actualizar una película
+// PUT /api/movies/:id 
 app.put('/api/movies/:id', (req, res) => {
   const movieIndex = movies.findIndex(m => m.id === req.params.id);
   
@@ -203,7 +198,7 @@ app.put('/api/movies/:id', (req, res) => {
   
   const { directorId } = req.body;
   
-  // Si se actualiza el director, verificar que existe
+
   if (directorId && directorId !== movies[movieIndex].directorId) {
     const directorExists = directors.find(d => d.id === directorId);
     if (!directorExists) {
@@ -214,17 +209,17 @@ app.put('/api/movies/:id', (req, res) => {
     }
   }
   
-  // Actualizar película manteniendo el ID original
+
   movies[movieIndex] = {
     ...movies[movieIndex],
     ...req.body,
-    id: req.params.id // Mantener el ID original
+    id: req.params.id 
   };
   
   res.json(movies[movieIndex]);
 });
 
-// DELETE /api/movies/:id - Eliminar una película
+// DELETE /api/movies/:id 
 app.delete('/api/movies/:id', (req, res) => {
   const movieIndex = movies.findIndex(m => m.id === req.params.id);
   
@@ -237,7 +232,7 @@ app.delete('/api/movies/:id', (req, res) => {
   
   const deletedMovie = movies[movieIndex];
   
-  // Eliminar también las relaciones con actores
+  
   movieActors = movieActors.filter(ma => ma.movieId !== req.params.id);
   
   movies.splice(movieIndex, 1);
@@ -248,22 +243,22 @@ app.delete('/api/movies/:id', (req, res) => {
   });
 });
 
-// ==================== GESTIÓN DE DIRECTORES ====================
 
-// GET /api/directors - Obtener todos los directores con filtros
+
+// GET /api/directors 
 app.get('/api/directors', (req, res) => {
   let result = [...directors];
   
   const { nationality, minBirthYear } = req.query;
   
-  // Filtro por nacionalidad
+  
   if (nationality) {
     result = result.filter(director => 
       director.nationality.toLowerCase().includes(nationality.toLowerCase())
     );
   }
   
-  // Filtro por año de nacimiento mínimo
+  
   if (minBirthYear) {
     const year = parseInt(minBirthYear);
     result = result.filter(director => director.birthYear >= year);
@@ -275,7 +270,7 @@ app.get('/api/directors', (req, res) => {
   });
 });
 
-// GET /api/directors/:id/movies - Obtener todas las películas de un director
+// GET /api/directors/:id/movies 
 app.get('/api/directors/:id/movies', (req, res) => {
   const director = directors.find(d => d.id === req.params.id);
   
@@ -295,11 +290,11 @@ app.get('/api/directors/:id/movies', (req, res) => {
   });
 });
 
-// POST /api/directors - Agregar un nuevo director
+// POST /api/directors 
 app.post('/api/directors', (req, res) => {
   const { name, nationality, birthYear, birthPlace, notableAwards } = req.body;
   
-  // Validar campos obligatorios
+
   if (!name || !nationality || !birthYear) {
     return res.status(400).json({ 
       error: 'Faltan campos obligatorios',
@@ -307,7 +302,6 @@ app.post('/api/directors', (req, res) => {
     });
   }
   
-  // Verificar si ya existe un director con el mismo nombre
   const directorExists = directors.find(d => 
     d.name.toLowerCase() === name.toLowerCase()
   );
@@ -331,22 +325,21 @@ app.post('/api/directors', (req, res) => {
   res.status(201).json(newDirector);
 });
 
-// ==================== GESTIÓN DE ACTORES ====================
 
-// GET /api/actors - Obtener todos los actores con filtros
+// GET /api/actors 
 app.get('/api/actors', (req, res) => {
   let result = [...actors];
   
   const { nationality, minBirthYear } = req.query;
   
-  // Filtro por nacionalidad
+
   if (nationality) {
     result = result.filter(actor => 
       actor.nationality.toLowerCase().includes(nationality.toLowerCase())
     );
   }
   
-  // Filtro por año de nacimiento mínimo
+ 
   if (minBirthYear) {
     const year = parseInt(minBirthYear);
     result = result.filter(actor => actor.birthYear >= year);
@@ -358,7 +351,7 @@ app.get('/api/actors', (req, res) => {
   });
 });
 
-// GET /api/actors/:id/movies - Obtener todas las películas de un actor
+// GET /api/actors/:id/movies 
 app.get('/api/actors/:id/movies', (req, res) => {
   const actor = actors.find(a => a.id === req.params.id);
   
@@ -389,11 +382,11 @@ app.get('/api/actors/:id/movies', (req, res) => {
   });
 });
 
-// POST /api/actors - Agregar un nuevo actor
+// POST /api/actors 
 app.post('/api/actors', (req, res) => {
   const { name, nationality, birthYear, birthPlace, notableAwards } = req.body;
   
-  // Validar campos obligatorios
+  
   if (!name || !nationality || !birthYear) {
     return res.status(400).json({ 
       error: 'Faltan campos obligatorios',
@@ -401,7 +394,6 @@ app.post('/api/actors', (req, res) => {
     });
   }
   
-  // Verificar si ya existe un actor con el mismo nombre
   const actorExists = actors.find(a => 
     a.name.toLowerCase() === name.toLowerCase()
   );
@@ -425,14 +417,13 @@ app.post('/api/actors', (req, res) => {
   res.status(201).json(newActor);
 });
 
-// ==================== RELACIONES PELÍCULAS-ACTORES ====================
 
-// POST /api/movies/:movieId/actors - Agregar un actor a una película
+// POST /api/movies/:movieId/actors 
 app.post('/api/movies/:movieId/actors', (req, res) => {
   const { actorId, characterName } = req.body;
   const { movieId } = req.params;
   
-  // Validar campos obligatorios
+  
   if (!actorId || !characterName) {
     return res.status(400).json({ 
       error: 'Faltan campos obligatorios',
@@ -440,7 +431,7 @@ app.post('/api/movies/:movieId/actors', (req, res) => {
     });
   }
   
-  // Verificar que la película existe
+  
   const movie = movies.find(m => m.id === movieId);
   if (!movie) {
     return res.status(404).json({ 
@@ -449,7 +440,7 @@ app.post('/api/movies/:movieId/actors', (req, res) => {
     });
   }
   
-  // Verificar que el actor existe
+  
   const actor = actors.find(a => a.id === actorId);
   if (!actor) {
     return res.status(422).json({ 
@@ -458,7 +449,6 @@ app.post('/api/movies/:movieId/actors', (req, res) => {
     });
   }
   
-  // Verificar si la relación ya existe
   const relationExists = movieActors.find(ma => 
     ma.movieId === movieId && ma.actorId === actorId
   );
@@ -485,11 +475,11 @@ app.post('/api/movies/:movieId/actors', (req, res) => {
   });
 });
 
-// GET /api/movies/:movieId/actors - Obtener todos los actores de una película
+// GET /api/movies/:movieId/actors 
 app.get('/api/movies/:movieId/actors', (req, res) => {
   const { movieId } = req.params;
   
-  // Verificar que la película existe
+  
   const movie = movies.find(m => m.id === movieId);
   if (!movie) {
     return res.status(404).json({ 
@@ -515,7 +505,6 @@ app.get('/api/movies/:movieId/actors', (req, res) => {
   });
 });
 
-// ==================== MANEJO DE RUTAS NO ENCONTRADAS ====================
 app.use((req, res) => {
   res.status(404).json({ 
     error: 'Endpoint no encontrado',
@@ -524,10 +513,9 @@ app.use((req, res) => {
   });
 });
 
-// ==================== INICIAR SERVIDOR ====================
 app.listen(PORT, () => {
-  console.log(`🎬 Servidor CineBase ejecutándose en http://localhost:${PORT}`);
-  console.log(`📚 Películas iniciales: ${movies.length}`);
-  console.log(`🎬 Directores iniciales: ${directors.length}`);
-  console.log(`🎭 Actores iniciales: ${actors.length}`);
+  console.log(`Servidor CineBase ejecutándose en http://localhost:${PORT}`);
+  console.log(`Películas iniciales: ${movies.length}`);
+  console.log(`Directores iniciales: ${directors.length}`);
+  console.log(`Actores iniciales: ${actors.length}`);
 });
